@@ -1,0 +1,11 @@
+dist
+Ionian_News_Crawler.egg-info
+ref
+log
+Dockerfile*
+docker-compose*
+.dockerignore
+.git
+.gitignore
+.idea
+data

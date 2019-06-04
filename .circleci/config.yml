@@ -5,7 +5,7 @@ jobs:
       only:
         - master
         - /rc-.*/
-    working_directory: ~/ionian
+    working_directory: ~/dorian
     docker:
       - image: circleci/python:3.6.8  # primary container for the build job
     steps:
@@ -18,7 +18,7 @@ jobs:
               command: |
                 sudo pip install pipenv
                 pipenv install
-                python setup.py install
+                
           - save_cache:
               key: deps9-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
               paths:

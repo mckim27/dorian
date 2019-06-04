@@ -1,0 +1,30 @@
+version: 2
+jobs:
+  build:  # required for runs that don't use workflows
+    branches:
+      only:
+        - master
+        - /rc-.*/
+    working_directory: ~/dorian
+    docker:
+      - image: circleci/python:3.6.8  # primary container for the build job
+    steps:
+          - checkout
+          - run: sudo chown -R circleci:circleci /usr/local/bin
+          - run: sudo chown -R circleci:circleci /usr/local/lib/python3.6/site-packages
+          - restore_cache:  # ensure this step occurs *before* installing dependencies
+              key: deps9-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+          - run:
+              command: |
+                sudo pip install pipenv
+                pipenv install
+                
+          - save_cache:
+              key: deps9-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+              paths:
+                - ".venv"
+                - "/usr/local/bin"
+                - "/usr/local/lib/python3.6/site-packages"
+          - run:
+              command: |
+                pipenv run python test.py

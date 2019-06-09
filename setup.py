@@ -15,6 +15,7 @@ DORIAN_REQUIRED_PYTHON = (3, 6)
 
 LOG_ZERO_MIN_VERSION = '1.5'
 KAFKA_PYTHON_MIN_VERSION = '1.4'
+BS4_MIN_VERSION = '4.7'
 
 # This check and everything above must remain compatible with python 2.X.
 ##########################################################################
@@ -32,6 +33,7 @@ if CURRENT_PYTHON < DORIAN_REQUIRED_PYTHON:
 REQUIREMENTS = [
     'logzero>={0}'.format(LOG_ZERO_MIN_VERSION),
     'kafka-python>={0}'.format(KAFKA_PYTHON_MIN_VERSION),
+    'beautifulsoup4>={0}'.format(BS4_MIN_VERSION),
 ]
 
 setup(

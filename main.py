@@ -9,9 +9,10 @@ import stat
 import tarfile
 from kafka import KafkaConsumer
 from scrap.daum_news_scrapper import ex_scrap
+from logzero import logger as log
 
-# SPOUT = '/pfs/out'
-SPOUT = './pfs/out'
+SPOUT = '/pfs/out'
+# SPOUT = './pfs/out'
 
 
 def open_pipe(path_to_file, attempts=0, timeout=2, sleep_int=5):
@@ -25,7 +26,7 @@ def open_pipe(path_to_file, attempts=0, timeout=2, sleep_int=5):
             # you must open the pipe as binary to prevent line-buffering problems.
             return os.fdopen(file, "wb")
         except OSError as oe:
-            print ('{0} attempt of {1}; error opening file: {2}'.format(attempts + 1, timeout, oe))
+            log.error('{0} attempt of {1}; error opening file: {2}'.format(attempts + 1, timeout, oe))
             os.umask(umask_original)
             time.sleep(sleep_int)
             return open_pipe(path_to_file, attempts + 1)
@@ -37,14 +38,14 @@ def open_pipe(path_to_file, attempts=0, timeout=2, sleep_int=5):
 def get_tar_stream(ex_spout):
 
     if ex_spout is None:
-        print('error opening file: {}'.format(SPOUT))
+        log.error('error opening file: {}'.format(SPOUT))
         exit(-2)
 
-    print("Creating tarstream...")
+    log.debug("Creating tarstream...")
     try:
         tarStream = tarfile.open(fileobj=ex_spout, mode="w|", encoding='utf-8')
     except tarfile.TarError as te:
-        print('error creating tarstream: {0}'.format(te))
+        log.error('error creating tarstream: {0}'.format(te))
         exit(-2)
 
     return tarStream
@@ -60,7 +61,7 @@ if __name__ == "__main__" :
     )
 
     while True:
-        print("wating ....")
+        log.info("wating ....")
         time.sleep(3)
 
         first_flag = True
@@ -73,29 +74,33 @@ if __name__ == "__main__" :
         for msg in consumer:
             if first_flag:
                 file_pipe = open_pipe(SPOUT)
-                tarStream = get_tar_stream(file_pipe)
+                tar_stream = get_tar_stream(file_pipe)
+                first_flag = False
 
-            print(msg.key.decode('utf-8'))
-            print(msg.value.decode('utf-8'))
+            # print(msg.key.decode('utf-8'))
+            # print(msg.value.decode('utf-8'))
 
             raw_html = msg.value.decode('utf-8')
             name = msg.key.decode('utf-8')
 
-            contents = ex_scrap(raw_html).strip()
+            contents = ex_scrap(raw_html)
+            log.debug("contents : " + contents)
 
-            textIO = io.TextIOWrapper(io.BytesIO(), encoding='utf8')
-            textIO.write(contents)
-            bytesIO = textIO.detach()
-            info = tarfile.TarInfo(name=name)
-            info.size = bytesIO.tell()
+            tarHeader = tarfile.TarInfo()
+            tarHeader.size = len(contents.encode('utf-8'))
+            tarHeader.mode = 0o600
+            tarHeader.name = name
+            tarHeader.mtime = time.time()
 
             try:
-                tarStream.addfile(tarinfo=info, fileobj=bytesIO)
+                with io.BytesIO(contents.encode('utf-8')) as ff:
+                    tar_stream.addfile(tarinfo=tarHeader, fileobj=ff)
 
             except tarfile.TarError as te:
-                print('error writing contents {0} to tarstream: {1}'.format(contents, name))
+                log.error('error writing contents {0} to tarstream: {1}'.format(contents, name))
                 exit(-2)
 
         if not first_flag:
             tar_stream.close()
             file_pipe.close()
+            log.debug('close~~~~')

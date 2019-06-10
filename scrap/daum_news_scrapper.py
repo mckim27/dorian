@@ -20,12 +20,12 @@ def ex_scrap(raw_html):
         re = text_container.find_all("p", attrs={"dmcf-ptype": True})
 
         for text_block in re:
-            log.debug(text_block.get_text())
+            #log.debug(text_block.get_text())
 
             if result_text != '':
-                result_text += '\n'
+                result_text = result_text.strip() + '\n'
 
-            result_text += text_block.get_text()
+            result_text += text_block.get_text().strip() + '\n'
 
     except Exception as e:
         log.error(e)

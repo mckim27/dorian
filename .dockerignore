@@ -9,3 +9,4 @@ docker-compose*
 .gitignore
 .idea
 data
+pfs

@@ -2,14 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import os
-import io
-import time
-import tarfile
-from logzero import logger as log
 from bs4 import BeautifulSoup
 from form.base_proc import BaseProc
 from common import config
-from common.file_util import open_pipe, get_tar_stream
 from form.data import PipelineContentsData
 
 class Scrapper(BaseProc):
@@ -79,46 +74,3 @@ class Scrapper(BaseProc):
             data.file_name = data.file_name + '.txt'
 
         return self
-
-
-    def file_save(self):
-        if config.RUN_MODE == 'pipeline':
-            for data in self._data_list:
-                with open(
-                        os.path.join(config.OUT_PATH, data.file_name),
-                        encoding='utf-8') as f:
-                    f.write(data.contents)
-
-            log.debug('pipeline end and exit.')
-            exit(0)
-
-        elif config.RUN_MODE == 'kafka_spout':
-
-            file_pipe = None
-            tar_stream = None
-            first_flag = True
-
-            for data in self._data_list:
-                if first_flag:
-                    file_pipe = open_pipe(config.OUT_PATH)
-                    tar_stream = get_tar_stream(file_pipe)
-                    first_flag = False
-
-                tar_info = tarfile.TarInfo()
-                tar_info.size = len(data.contents.encode('utf-8'))
-                tar_info.mode = 0o600
-                tar_info.name = data.file_name
-                tar_info.mtime = time.time()
-
-                try:
-                    with io.BytesIO(data.contents.encode('utf-8')) as ff:
-                        tar_stream.addfile(tarinfo=tar_info, fileobj=ff)
-
-                except tarfile.TarError as te:
-                    raise Exception('error writing contents {0} to tarstream: {1}'.format(data.contents, data.file_name))
-
-            if not first_flag:
-                tar_stream.close()
-                file_pipe.close()
-
-            log.debug('data_file save.')

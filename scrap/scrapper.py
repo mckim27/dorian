@@ -6,6 +6,8 @@ from bs4 import BeautifulSoup
 from form.base_proc import BaseProc
 from common import config
 from form.data import PipelineContentsData
+from logzero import logger as log
+
 
 class Scrapper(BaseProc):
 
@@ -21,6 +23,8 @@ class Scrapper(BaseProc):
                 msg.key.decode('utf-8'), msg.value.decode('utf-8'))
 
             self._data_list.append(data)
+
+        log.info('get_raw_html_from_spout func end.')
 
         return self
 
@@ -38,18 +42,26 @@ class Scrapper(BaseProc):
 
                 self._data_list.append(data)
 
+        log.info('get_raw_html_from_repo func end.')
+
         return self
 
 
     def scrap_daumnews_article_contents(self):
+        result_data_list = []
 
         for data in self._data_list:
             result_text = ''
-            
+
+            log.debug("data.contents : " + data.contents)
+
             soup = BeautifulSoup(data.contents, 'html.parser')
             news_view = soup.find('div', class_='news_view')
 
-            # log.debug(news_view)
+            if news_view is None:
+                log.warn('not html .... ???')
+                log.warn(news_view)
+                continue
 
             text_container = news_view.find('div', id='harmonyContainer')
             # text = text_container.find_all('section')
@@ -63,7 +75,12 @@ class Scrapper(BaseProc):
 
                 result_text += text_block.get_text().strip() + '\n'
 
-            data.contents = result_text
-            data.file_name = data.file_name + '.txt'
+            result_data = PipelineContentsData(data.file_name + '.txt', result_text)
+
+            result_data_list.append(result_data)
+
+        log.info('scrap_daumnews_article_contents func end.')
+
+        self._data_list = result_data_list
 
         return self

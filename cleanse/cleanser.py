@@ -16,8 +16,8 @@ class Cleanser(BaseProc):
         return self
 
     def end(self):
-        if constant.RUN_MODE == 'pipeline':
+        if config.RUN_MODE == 'pipeline':
             log.debug('pipeline end and exit.')
             exit(0)
-        elif constant.RUN_MODE == 'kafka_spout':
+        elif config.RUN_MODE == 'kafka_spout':
             log.debug('kafka_spout end.')

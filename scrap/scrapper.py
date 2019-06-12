@@ -53,8 +53,6 @@ class Scrapper(BaseProc):
         for data in self._data_list:
             result_text = ''
 
-            log.debug("data.contents : " + data.contents)
-
             soup = BeautifulSoup(data.contents, 'html.parser')
             news_view = soup.find('div', class_='news_view')
 
@@ -74,6 +72,8 @@ class Scrapper(BaseProc):
                     result_text = result_text.strip() + '\n'
 
                 result_text += text_block.get_text().strip() + '\n'
+
+            log.debug("result scrap text : " + result_text)
 
             result_data = PipelineContentsData(data.file_name + '.txt', result_text)
 

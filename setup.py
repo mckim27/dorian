@@ -11,12 +11,13 @@ from setuptools import find_packages, setup
 from coverage import __version__, __author__, __author_email__, __description__, __license__, __name__
 
 CURRENT_PYTHON = sys.version_info[:2]
-DORIAN_REQUIRED_PYTHON = (3, 6)
+DORIAN_REQUIRED_PYTHON = (3, 7)
 
 LOG_ZERO_MIN_VERSION = '1.5'
 KAFKA_PYTHON_MIN_VERSION = '1.4'
 BS4_MIN_VERSION = '4.7'
 CLICK_MIN_VERSION = '7.0'
+FIRE_MIN_VERSION = '0.1.3'
 
 # This check and everything above must remain compatible with python 2.X.
 ##########################################################################
@@ -36,6 +37,7 @@ REQUIREMENTS = [
     'kafka-python>={0}'.format(KAFKA_PYTHON_MIN_VERSION),
     'beautifulsoup4>={0}'.format(BS4_MIN_VERSION),
     'Click>={0}'.format(CLICK_MIN_VERSION),
+    'fire>={0}'.format(FIRE_MIN_VERSION),
 ]
 
 setup(
@@ -54,9 +56,6 @@ setup(
         'Operating System :: MacOS',
         'Operating System :: Linux',
         'Programming Language :: Python',
-        'Programming Language :: 3'
-        'Programming Language :: 3.5',
-        'Programming Language :: 3.6',
-        'Programming Language :: 3 :: only'
+        'Programming Language :: 3.7 :: only'
     ]
 )

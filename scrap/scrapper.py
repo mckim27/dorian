@@ -48,9 +48,7 @@ class Scrapper(BaseProc):
 
 
     def scrap_daumnews_article_contents(self):
-        result_data_list = []
-
-        for data in self._data_list:
+        for idx, data in enumerate(self._data_list):
             result_text = ''
 
             soup = BeautifulSoup(data.contents, 'html.parser')
@@ -59,6 +57,7 @@ class Scrapper(BaseProc):
             if news_view is None:
                 log.warn('not html .... ???')
                 log.warn(news_view)
+                self._data_list[idx] = None
                 continue
 
             text_container = news_view.find('div', id='harmonyContainer')
@@ -73,14 +72,12 @@ class Scrapper(BaseProc):
 
                 result_text += text_block.get_text().strip() + '\n'
 
+            log.debug("result scrap file_name : " + data.file_name + '.txt')
             log.debug("result scrap text : " + result_text)
 
-            result_data = PipelineContentsData(data.file_name + '.txt', result_text)
-
-            result_data_list.append(result_data)
+            data.contents = result_text
+            data.file_name = data.file_name + '.txt'
 
         log.info('scrap_daumnews_article_contents func end.')
-
-        self._data_list = result_data_list
 
         return self

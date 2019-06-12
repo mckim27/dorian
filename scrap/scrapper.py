@@ -17,13 +17,8 @@ class Scrapper(BaseProc):
             'this function is only `kafka_spout` run_mode...'
 
         for msg in config.CONSUMER_INSTANCE:
-            data = PipelineContentsData()
-
-            raw_html = msg.value.decode('utf-8')
-            name = msg.key.decode('utf-8')
-
-            data.contents = raw_html
-            data.file_name = name
+            data = PipelineContentsData(
+                msg.key.decode('utf-8'), msg.value.decode('utf-8'))
 
             self._data_list.append(data)
 
@@ -38,11 +33,8 @@ class Scrapper(BaseProc):
 
         for dirpath, dirs, files in os.walk(config.IN_PATH):
             for file in files:
-                data = PipelineContentsData()
-
                 with open(os.path.join(dirpath, file), encoding='utf-8') as f:
-                    data.contents = f.read()
-                    data.file_name = f.name
+                    data = PipelineContentsData(f.name, f.read())
 
                 self._data_list.append(data)
 
@@ -52,7 +44,8 @@ class Scrapper(BaseProc):
     def scrap_daumnews_article_contents(self):
 
         for data in self._data_list:
-
+            result_text = ''
+            
             soup = BeautifulSoup(data.contents, 'html.parser')
             news_view = soup.find('div', class_='news_view')
 

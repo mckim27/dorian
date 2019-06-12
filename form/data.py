@@ -6,5 +6,5 @@ from dataclasses import dataclass
 
 @dataclass(order=False)
 class PipelineContentsData:
-    contents: str
     file_name: str
+    contents: str

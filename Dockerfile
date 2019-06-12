@@ -1,4 +1,4 @@
-FROM python:3.6.8-alpine3.9
+FROM python:3.7.3-alpine3.9
 
 RUN apk --no-cache add tzdata && \
         cp /usr/share/zoneinfo/Asia/Seoul /etc/localtime && \

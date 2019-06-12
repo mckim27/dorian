@@ -36,7 +36,7 @@ REQUIREMENTS = [
     'logzero>={0}'.format(LOG_ZERO_MIN_VERSION),
     'kafka-python>={0}'.format(KAFKA_PYTHON_MIN_VERSION),
     'beautifulsoup4>={0}'.format(BS4_MIN_VERSION),
-    'Click>={0}'.format(CLICK_MIN_VERSION),
+    'click>={0}'.format(CLICK_MIN_VERSION),
     'fire>={0}'.format(FIRE_MIN_VERSION),
 ]
 

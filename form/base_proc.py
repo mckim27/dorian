@@ -1,6 +1,7 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
 
+import os.path
 import tarfile
 import time
 import os
@@ -32,9 +33,17 @@ class BaseProc:
     def file_save(self):
         if config.RUN_MODE == 'pipeline':
             for data in self._data_list:
-                with open(
-                        os.path.join(config.OUT_PATH, data.file_name),
-                        encoding='utf-8') as f:
+
+                if data is None:
+                    continue
+
+                file_path = os.path.join(config.OUT_PATH, data.file_name)
+
+                if os.path.exists(file_path):
+                    log.wran('file exist... by pass. :: file_path - {0}'.format(file_path))
+                    continue
+
+                with open(file_path, encoding='utf-8') as f:
                     f.write(data.contents)
 
             log.debug('pipeline end and exit.')
@@ -47,6 +56,9 @@ class BaseProc:
             first_flag = True
 
             for data in self._data_list:
+                if data is None:
+                    continue
+
                 if first_flag:
                     file_pipe = open_pipe(config.OUT_PATH)
                     tar_stream = get_tar_stream(file_pipe)
@@ -68,5 +80,6 @@ class BaseProc:
             if not first_flag:
                 tar_stream.close()
                 file_pipe.close()
+                log.debug('data_file save complete.')
 
-            log.debug('data_file save.')
+        self._data_list.clear()

@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 
 from logzero import logger as log
-from form.base_proc import BaseProc
+from form.base_obj import Module
 from common import config
 
 
-class Cleanser(BaseProc):
+class Cleanser(Module):
 
-    def __init__(self):
-        super(Cleanser, self).__init__()
+    def __init__(self, run_mode, data):
+        super(Cleanser, self).__init__(run_mode, data)
 
     def cleanse_news_text(self):
         log.debug('cleanse_news_text')

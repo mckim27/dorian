@@ -3,16 +3,16 @@
 
 import os
 from bs4 import BeautifulSoup
-from form.base_proc import BaseProc
+from form.base_obj import Module
 from common import config
 from form.data import PipelineContentsData
 from logzero import logger as log
 
 
-class Scrapper(BaseProc):
+class Scrapper(Module):
 
-    def __init__(self):
-        super(Scrapper, self).__init__()
+    def __init__(self, run_mode, data):
+        super(Scrapper, self).__init__(run_mode, data)
 
     def get_raw_html_from_spout(self):
         assert config.RUN_MODE == 'kafka_spout', \

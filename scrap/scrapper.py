@@ -3,7 +3,6 @@
 
 from bs4 import BeautifulSoup
 from form.base_obj import Module
-from common import config
 from logzero import logger as log
 
 

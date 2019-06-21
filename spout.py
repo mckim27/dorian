@@ -10,6 +10,11 @@ from common.info_util import print_app_info
 from common.factory import ActionFactory
 from kafka import KafkaConsumer
 from form.data import PipelineContentsData
+from common.file_util import get_tar_stream, open_pipe
+from common import g_resource
+
+g_resource.RUN_MODE = 'spout'
+g_resource.SPOUT_DATA_COUNT_PER_ONCE = 30
 
 if __name__ == "__main__" :
     print_app_info()
@@ -40,8 +45,6 @@ if __name__ == "__main__" :
         log.error('"run" command is required ... ')
         exit(134)
 
-
-
     log.debug('base_argv : {0}'.format(', '.join(base_argv)))
     log.debug('fire_argv : {0}'.format(', '.join(fire_argv)))
 
@@ -66,36 +69,68 @@ if __name__ == "__main__" :
                         default='daum_news_raw_contents_consumer',
                         help='consumer group id')
 
+    parser.add_argument('--out_path', type=str, nargs='?',
+                        default='/pfs/out',
+                        help='result output folder path')
+
     args = parser.parse_args()
     broker_hosts = args.broker_hosts
     topic_name = args.topic_name
     group_id = args.group_id
+    g_resource.OUT_PATH = args.out_path
 
     log.info('##### kafka config')
     log.info('# broker_hosts : {0}'.format(', '.join(broker_hosts)))
     log.info('# topic_name : {0}'.format(topic_name))
     log.info('# group_id : {0}'.format(group_id))
-
-    consumer = KafkaConsumer(
-        topic_name,
-        auto_offset_reset='latest', group_id=group_id,
-        bootstrap_servers=broker_hosts, api_version=(0, 10),
-        consumer_timeout_ms=5000, max_poll_records=10
-    )
+    log.info('# out_path : {0}'.format(g_resource.OUT_PATH))
 
     sys.argv.clear()
     sys.argv.append(zero_arg)
     sys.argv = sys.argv + fire_argv
     log.debug('fire sys.argv : {0}'.format(', '.join(sys.argv)))
 
+    file_pipe = None
+    tar_stream = None
+    consumer = None
+
+    actionFactory = ActionFactory()
+
     while True:
         log.info("wating ....")
         time.sleep(3)
-        fire.Fire(ActionFactory, name='run')
-        # for msg in consumer:
-        #     data = PipelineContentsData(
-        #         msg.key.decode('utf-8'), msg.value.decode('utf-8'))
-        #     fire.Fire(SpoutActionFactory)
+
+        if consumer is None:
+            consumer = KafkaConsumer(
+                topic_name,
+                auto_offset_reset='latest', group_id=group_id,
+                bootstrap_servers=broker_hosts, api_version=(0, 10),
+                consumer_timeout_ms=5000, max_poll_records=g_resource.SPOUT_DATA_COUNT_PER_ONCE
+            )
+
+        for _, msg in enumerate(consumer):
+
+            if g_resource.SPOUT_FILE_PIPE is None:
+                g_resource.SPOUT_FILE_PIPE = open_pipe(g_resource.OUT_PATH)
+                g_resource.SPOUT_TAR_STREAM = get_tar_stream(g_resource.SPOUT_FILE_PIPE)
+
+            data = PipelineContentsData(
+                msg.key.decode('utf-8'), msg.value.decode('utf-8'))
+
+            actionFactory.set_data(data=data)
+
+            fire.Fire(actionFactory)
+
+            if _ >= g_resource.SPOUT_DATA_COUNT_PER_ONCE :
+                g_resource.SPOUT_TAR_STREAM.close()
+                g_resource.SPOUT_FILE_PIPE.close()
+                consumer.close()
+
+                g_resource.SPOUT_TAR_STREAM = None
+                g_resource.SPOUT_FILE_PIPE = None
+                consumer = None
+
+                break
 
         if len(fire_argv) == 0:
             log.error('"run" param is required ... ')

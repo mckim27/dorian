@@ -9,7 +9,9 @@ import argparse
 from common.info_util import print_app_info
 from common.factory import ActionFactory
 from form.data import PipelineContentsData
+from common import g_resource
 
+g_resource.RUN_MODE = 'pipeline'
 
 if __name__ == "__main__" :
     print_app_info()
@@ -70,17 +72,25 @@ if __name__ == "__main__" :
     assert isinstance(out_path, str), 'the "out_path" param is invalid ... out_path : {}'.format(out_path)
     # TODO out_path check
 
+    g_resource.IN_PATH = in_path
+    g_resource.OUT_PATH = out_path
+
     sys.argv.clear()
     sys.argv.append(zero_arg)
     sys.argv = sys.argv + fire_argv
     log.debug('fire sys.argv : {0}'.format(', '.join(sys.argv)))
+
+    actionFactory = ActionFactory()
 
     for dirpath, dirs, files in os.walk(in_path):
         for file in files:
             with open(os.path.join(dirpath, file), encoding='utf-8') as f:
                 data = PipelineContentsData(f.name, f.read())
 
-            fire.Fire(ActionFactory)
+            actionFactory.set_data(run_mode=g_resource.RUN_MODE, data=data)
+
+            fire.Fire(actionFactory)
+
             if len(fire_argv) == 0:
                 log.error('"run" param is required ... ')
                 exit(135)

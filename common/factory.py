@@ -11,12 +11,11 @@ from form.data import PipelineContentsData
 
 class ActionFactory:
 
-    def __init__(self, run_mode: str = 'pipeline', data: PipelineContentsData = None):
+    def __init__(self):
+        self.scrapper = None
+        self.cleanser = None
 
+    def set_data(self, run_mode: str = 'pipeline', data: PipelineContentsData = None):
         # set feature module
         self.scrapper = Scrapper(run_mode, data)
         self.cleanser = Cleanser(run_mode, data)
-
-
-
-

@@ -3,7 +3,6 @@
 
 from logzero import logger as log
 from form.base_obj import Module
-from common import config
 
 
 class Cleanser(Module):

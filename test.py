@@ -1,3 +1,6 @@
+#! /usr/bin/python
+# -*- coding: utf-8 -*-
+
 
 if __name__ == "__main__" :
-    print('dummpy test file....')
+    print('test not yet inplemented...')

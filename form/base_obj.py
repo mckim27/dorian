@@ -54,6 +54,8 @@ class Module:
             tar_info.mtime = time.time()
 
             try:
+                log.info('check tarstrem : {0}'.format(g_resource.SPOUT_TAR_STREAM))
+                
                 with io.BytesIO(self._data.contents.encode('utf-8')) as ff:
                     g_resource.SPOUT_TAR_STREAM.addfile(tarinfo=tar_info, fileobj=ff)
 

@@ -11,14 +11,17 @@ class Scrapper(Module):
     def __init__(self, data):
         super(Scrapper, self).__init__(data)
 
-
     def scrap_daumnews_article_contents(self):
+        result_text = ''
+
         soup = BeautifulSoup(self._data.contents, 'html.parser')
         news_view = soup.find('div', class_='news_view')
 
         if news_view is None:
             log.warn('not html .... ???')
             log.warn(news_view)
+            self._status = -1
+            return self
 
         text_container = news_view.find('div', id='harmonyContainer')
         # text = text_container.find_all('section')

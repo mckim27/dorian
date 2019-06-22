@@ -99,6 +99,7 @@ if __name__ == "__main__" :
     while True:
         log.info("wating ....")
         time.sleep(3)
+        data_count = 0
 
         if consumer is None:
             consumer = KafkaConsumer(
@@ -108,11 +109,15 @@ if __name__ == "__main__" :
                 consumer_timeout_ms=5000, max_poll_records=g_resource.SPOUT_DATA_COUNT_PER_ONCE
             )
 
-        for _, msg in enumerate(consumer):
+        for msg in consumer:
+            data_count += 1
+
+            log.debug('data_count : {0}'.format(data_count))
 
             if g_resource.SPOUT_FILE_PIPE is None:
                 g_resource.SPOUT_FILE_PIPE = open_pipe(g_resource.OUT_PATH)
                 g_resource.SPOUT_TAR_STREAM = get_tar_stream(g_resource.SPOUT_FILE_PIPE)
+                log.debug('pipe and tar open !!!')
 
             data = PipelineContentsData(
                 msg.key.decode('utf-8'), msg.value.decode('utf-8'))
@@ -121,16 +126,17 @@ if __name__ == "__main__" :
 
             fire.Fire(actionFactory)
 
-            if _ >= g_resource.SPOUT_DATA_COUNT_PER_ONCE :
-                g_resource.SPOUT_TAR_STREAM.close()
-                g_resource.SPOUT_FILE_PIPE.close()
-                consumer.close()
+            if data_count != 0 and data_count % g_resource.SPOUT_DATA_COUNT_PER_ONCE == 0:
+                consumer.commit()
 
-                g_resource.SPOUT_TAR_STREAM = None
-                g_resource.SPOUT_FILE_PIPE = None
-                consumer = None
+                log.info('consumer commit. wait for next data.')
+                time.sleep(3)
 
-                break
+        if data_count != 0:
+            g_resource.SPOUT_TAR_STREAM.close()
+            g_resource.SPOUT_FILE_PIPE.close()
+            g_resource.SPOUT_TAR_STREAM = None
+            g_resource.SPOUT_FILE_PIPE = None
 
         if len(fire_argv) == 0:
             log.error('"run" param is required ... ')

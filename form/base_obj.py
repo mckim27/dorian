@@ -10,14 +10,24 @@ from logzero import logger as log
 from form.data import PipelineContentsData
 from common import g_resource
 
+
 class Module:
 
     _data = None
+    _status = 0
 
     def __init__(self, data: PipelineContentsData = None):
         self._data = data
 
+
+    def set_data(self, data: PipelineContentsData = None):
+        self._data = data
+
     def file_save(self):
+        if self._status < 0:
+            log.error('status is abnormal ... status : {0}'.format(self._status))
+            return
+
         if g_resource.RUN_MODE == 'pipeline':
 
             if self._data is None:

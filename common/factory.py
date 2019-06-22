@@ -1,8 +1,6 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
 
-import time
-import fire
 from logzero import logger as log
 from scrap.scrapper import Scrapper
 from cleanse.cleanser import Cleanser
@@ -15,7 +13,11 @@ class ActionFactory:
         self.scrapper = None
         self.cleanser = None
 
-    def set_data(self, run_mode: str = 'pipeline', data: PipelineContentsData = None):
+    def set_data(self, data: PipelineContentsData = None):
         # set feature module
-        self.scrapper = Scrapper(run_mode, data)
-        self.cleanser = Cleanser(run_mode, data)
+        if self.scrapper is None:
+            self.scrapper = Scrapper(data)
+            self.cleanser = Cleanser(data)
+        else:
+            self.scrapper.set_data(data)
+            self.cleanser.set_data(data)

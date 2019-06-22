@@ -17,6 +17,9 @@ LOG_ZERO_MIN_VERSION = '1.5'
 KAFKA_PYTHON_MIN_VERSION = '1.4'
 BS4_MIN_VERSION = '4.7'
 FIRE_MIN_VERSION = '0.1.3'
+TERM_COLOR_MIN_VERSION = '1.1.0'
+PY_FIGLET_MIN_VERSION = '0.8'
+COLORAMA_MIN_VERSION = '0.3.9'
 
 # This check and everything above must remain compatible with python 2.X.
 ##########################################################################
@@ -36,6 +39,9 @@ REQUIREMENTS = [
     'kafka-python>={0}'.format(KAFKA_PYTHON_MIN_VERSION),
     'beautifulsoup4>={0}'.format(BS4_MIN_VERSION),
     'fire>={0}'.format(FIRE_MIN_VERSION),
+    'termcolor>={0}'.format(TERM_COLOR_MIN_VERSION),
+    'pyfiglet>={0}'.format(PY_FIGLET_MIN_VERSION),
+    'colorama>={0}'.format(COLORAMA_MIN_VERSION)
 ]
 
 setup(

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 __name__            = 'Dorian'
-__version__         = '0.9.0'
+__version__         = '0.9.12'
 __author__          = 'mckim'
 __author_email__    = 'bluevoice27@gmail.com'
 __description__     = 'korean news processing pipeline app'

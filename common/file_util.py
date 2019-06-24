@@ -6,6 +6,17 @@ import os
 import stat
 import tarfile
 from logzero import logger as log
+from common import g_resource
+
+
+def close_tar_stream_and_pipe(tar_file, file_pipe):
+    if g_resource.SPOUT_TAR_STREAM is not None:
+        g_resource.SPOUT_TAR_STREAM.close()
+        g_resource.SPOUT_TAR_STREAM = None
+
+    if g_resource.SPOUT_FILE_PIPE is not None:
+        g_resource.SPOUT_FILE_PIPE.close()
+        g_resource.SPOUT_FILE_PIPE = None
 
 
 def add_dir_to_tarfile(dir: str, tar_file):
@@ -17,6 +28,7 @@ def add_dir_to_tarfile(dir: str, tar_file):
     tar_info.gid = os.getgid()
 
     tar_file.addfile(tarinfo=tar_info)
+
 
 def open_pipe(path_to_file, attempts=0, timeout=2, sleep_int=5):
     if attempts < timeout :

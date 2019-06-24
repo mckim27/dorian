@@ -13,7 +13,7 @@ from common.info_util import print_app_info
 from common.factory import ActionFactory
 from kafka import KafkaConsumer
 from form.data import PipelineContentsData
-from common.file_util import get_tar_stream, open_pipe, add_dir_to_tarfile
+from common.file_util import get_tar_stream, open_pipe, add_dir_to_tarfile, close_tar_stream_and_pipe
 from common import g_resource
 from common.msg import ERR_INVALID_TYPE
 
@@ -159,13 +159,13 @@ if __name__ == "__main__" :
             if data_count != 0 and data_count % g_resource.SPOUT_DATA_COUNT_PER_ONCE == 0:
                 consumer.commit()
 
-                g_resource.close_tar_stream_and_pipe()
+                close_tar_stream_and_pipe()
 
                 log.info('consumer commit. wait for next data.')
                 time.sleep(2)
 
         if data_count != 0:
-            g_resource.close_tar_stream_and_pipe()
+            close_tar_stream_and_pipe()
 
         if len(fire_argv) == 0:
             log.error('"run" param is required ... ')

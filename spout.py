@@ -3,18 +3,24 @@
 
 import time
 import fire
+import json
 from logzero import logger as log
 import sys
 import argparse
+import tarfile
+import os
 from common.info_util import print_app_info
 from common.factory import ActionFactory
 from kafka import KafkaConsumer
 from form.data import PipelineContentsData
-from common.file_util import get_tar_stream, open_pipe
+from common.file_util import get_tar_stream, open_pipe, add_dir_to_tarfile
 from common import g_resource
+from common.msg import ERR_INVALID_TYPE
 
 g_resource.RUN_MODE = 'spout'
 g_resource.SPOUT_DATA_COUNT_PER_ONCE = 30
+
+
 
 if __name__ == "__main__" :
     print_app_info()
@@ -106,37 +112,60 @@ if __name__ == "__main__" :
                 topic_name,
                 auto_offset_reset='latest', group_id=group_id,
                 bootstrap_servers=broker_hosts, api_version=(0, 10),
-                consumer_timeout_ms=5000, max_poll_records=g_resource.SPOUT_DATA_COUNT_PER_ONCE
+                consumer_timeout_ms=5000, max_poll_records=g_resource.SPOUT_DATA_COUNT_PER_ONCE,
+                fetch_max_bytes=5000000
             )
 
+        # TODO function 으로 만들수 있는 부분 생각해보고 function 변경하기.
         for msg in consumer:
             data_count += 1
 
             log.debug('data_count : {0}'.format(data_count))
 
+            news_info = json.loads(msg.value)
+
+            ymd_date = news_info['origin_create_date']
+            ymd_date = ymd_date[:8]
+
+            assert isinstance(news_info['category_en_name'], str), \
+                ERR_INVALID_TYPE.format(news_info['category_en_name'])
+
+            category_en_path = ymd_date + '/' + news_info['category_en_name']
+
+            assert isinstance(news_info['sub_category_en_name'], str), \
+                ERR_INVALID_TYPE.format(news_info['sub_category_en_name'])
+
+            sub_category_en_name = news_info['sub_category_en_name']
+
+            if sub_category_en_name != '-':
+                category_en_path += '/' + sub_category_en_name
+
             if g_resource.SPOUT_FILE_PIPE is None:
                 g_resource.SPOUT_FILE_PIPE = open_pipe(g_resource.OUT_PATH)
                 g_resource.SPOUT_TAR_STREAM = get_tar_stream(g_resource.SPOUT_FILE_PIPE)
                 log.debug('pipe and tar open !!!')
+                add_dir_to_tarfile(category_en_path, g_resource.SPOUT_TAR_STREAM)
 
             data = PipelineContentsData(
-                msg.key.decode('utf-8'), msg.value.decode('utf-8'))
+                category_en_path + '/' + msg.key.decode('utf-8'), news_info['contents'])
 
             actionFactory.set_data(data=data)
+
+            log.debug('Sleep to prevent the broken pipe.')
+            time.sleep(2)
 
             fire.Fire(actionFactory)
 
             if data_count != 0 and data_count % g_resource.SPOUT_DATA_COUNT_PER_ONCE == 0:
                 consumer.commit()
 
+                g_resource.close_tar_stream_and_pipe()
+
                 log.info('consumer commit. wait for next data.')
-                time.sleep(3)
+                time.sleep(2)
 
         if data_count != 0:
-            g_resource.SPOUT_TAR_STREAM.close()
-            g_resource.SPOUT_FILE_PIPE.close()
-            g_resource.SPOUT_TAR_STREAM = None
-            g_resource.SPOUT_FILE_PIPE = None
+            g_resource.close_tar_stream_and_pipe()
 
         if len(fire_argv) == 0:
             log.error('"run" param is required ... ')

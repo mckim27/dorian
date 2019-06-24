@@ -15,10 +15,10 @@ class Module:
 
     _data = None
     _status = 0
+    _retry = 0
 
     def __init__(self, data: PipelineContentsData = None):
         self._data = data
-
 
     def set_data(self, data: PipelineContentsData = None):
         self._data = data
@@ -60,4 +60,10 @@ class Module:
                     g_resource.SPOUT_TAR_STREAM.addfile(tarinfo=tar_info, fileobj=ff)
 
             except tarfile.TarError as te:
-                raise Exception('error writing contents {0} to tarstream: {1}'.format(self._data.contents, self._data.file_name))
+                if 'broken pipe' in te.message:
+                    time.sleep(5)
+                    if self._retry != 3:
+                        self.file_save()
+                        self._retry += 1
+                else:
+                    raise Exception('error writing contents {0} to tarstream: {1}'.format(self._data.contents, self._data.file_name))

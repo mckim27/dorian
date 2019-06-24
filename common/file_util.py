@@ -8,6 +8,16 @@ import tarfile
 from logzero import logger as log
 
 
+def add_dir_to_tarfile(dir: str, tar_file):
+    tar_info = tarfile.TarInfo(dir)
+    tar_info.type = tarfile.DIRTYPE
+    tar_info.mtime = time.time()
+    tar_info.mode = 0o755
+    tar_info.uid = os.geteuid()
+    tar_info.gid = os.getgid()
+
+    tar_file.addfile(tarinfo=tar_info)
+
 def open_pipe(path_to_file, attempts=0, timeout=2, sleep_int=5):
     if attempts < timeout :
         flags = os.O_WRONLY  # Refer to "man 2 open".

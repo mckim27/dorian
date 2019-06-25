@@ -9,7 +9,7 @@ from logzero import logger as log
 from common import g_resource
 
 
-def close_tar_stream_and_pipe(tar_file, file_pipe):
+def close_tar_stream_and_pipe():
     if g_resource.SPOUT_TAR_STREAM is not None:
         g_resource.SPOUT_TAR_STREAM.close()
         g_resource.SPOUT_TAR_STREAM = None

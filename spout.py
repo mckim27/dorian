@@ -21,7 +21,6 @@ g_resource.RUN_MODE = 'spout'
 g_resource.SPOUT_DATA_COUNT_PER_ONCE = 30
 
 
-
 if __name__ == "__main__" :
     print_app_info()
 
@@ -124,13 +123,10 @@ if __name__ == "__main__" :
 
             news_info = json.loads(msg.value)
 
-            ymd_date = news_info['origin_create_date']
-            ymd_date = ymd_date[:8]
-
             assert isinstance(news_info['category_en_name'], str), \
                 ERR_INVALID_TYPE.format(news_info['category_en_name'])
 
-            category_en_path = ymd_date + '/' + news_info['category_en_name']
+            file_name = msg.key.decode('utf-8') + '_' + news_info['category_en_name']
 
             assert isinstance(news_info['sub_category_en_name'], str), \
                 ERR_INVALID_TYPE.format(news_info['sub_category_en_name'])
@@ -138,21 +134,19 @@ if __name__ == "__main__" :
             sub_category_en_name = news_info['sub_category_en_name']
 
             if sub_category_en_name != '-':
-                category_en_path += '/' + sub_category_en_name
+                file_name += '_' + sub_category_en_name
 
             if g_resource.SPOUT_FILE_PIPE is None:
                 g_resource.SPOUT_FILE_PIPE = open_pipe(g_resource.OUT_PATH)
                 g_resource.SPOUT_TAR_STREAM = get_tar_stream(g_resource.SPOUT_FILE_PIPE)
                 log.debug('pipe and tar open !!!')
-                add_dir_to_tarfile(category_en_path, g_resource.SPOUT_TAR_STREAM)
 
-            data = PipelineContentsData(
-                category_en_path + '/' + msg.key.decode('utf-8'), news_info['contents'])
+            data = PipelineContentsData(file_name, news_info['contents'])
 
             actionFactory.set_data(data=data)
 
-            log.debug('Sleep to prevent the broken pipe.')
-            time.sleep(2)
+            # log.debug('Sleep to prevent the broken pipe.')
+            # time.sleep(2)
 
             fire.Fire(actionFactory)
 
@@ -162,7 +156,7 @@ if __name__ == "__main__" :
                 close_tar_stream_and_pipe()
 
                 log.info('consumer commit. wait for next data.')
-                time.sleep(2)
+                time.sleep(5)
 
         if data_count != 0:
             close_tar_stream_and_pipe()

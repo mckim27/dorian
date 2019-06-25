@@ -59,11 +59,23 @@ class Module:
                 with io.BytesIO(self._data.contents.encode('utf-8')) as ff:
                     g_resource.SPOUT_TAR_STREAM.addfile(tarinfo=tar_info, fileobj=ff)
 
-            except tarfile.TarError as te:
-                if 'broken pipe' in te.message:
+                self._retry = 0
+
+            except Exception as e:
+                if 'Broken pipe' in e.message:
+                    log.warn('Broken pipe !!! wait a moment...')
                     time.sleep(5)
+
                     if self._retry != 3:
-                        self.file_save()
+                        log.warn('retry count : {0}'.format(self._retry))
                         self._retry += 1
+                        self.file_save()
+                    else:
+                        raise Exception(
+                            'broken pipe error writing contents {0} to tarstream: {1}'.format(
+                                self._data.contents, self._data.file_name))
                 else:
-                    raise Exception('error writing contents {0} to tarstream: {1}'.format(self._data.contents, self._data.file_name))
+
+                    raise Exception(
+                        'error writing contents {0} to tarstream: {1}'.format(
+                            self._data.contents, self._data.file_name))

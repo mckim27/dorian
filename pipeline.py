@@ -85,9 +85,11 @@ if __name__ == "__main__" :
     for dirpath, dirs, files in os.walk(in_path):
         for file in files:
             with open(os.path.join(dirpath, file), encoding='utf-8') as f:
+                # file_name = f.name[f.name.rfind('/') + 1 : -5]
+                # log.debug(file_name)
                 data = PipelineContentsData(f.name, f.read())
 
-            actionFactory.set_data(run_mode=g_resource.RUN_MODE, data=data)
+            actionFactory.set_data(data=data)
 
             fire.Fire(actionFactory)
 

@@ -10,4 +10,4 @@ WORKDIR /dorian
 
 RUN python setup.py install
 
-ENTRYPOINT ["python", "main.py"]
+ENTRYPOINT ["python"]

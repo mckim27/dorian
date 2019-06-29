@@ -14,15 +14,17 @@ from common import g_resource
 g_resource.RUN_MODE = 'pipeline'
 
 if __name__ == "__main__" :
-    print_app_info()
 
-    log.debug('sys.argv : {0}'.format(', '.join(sys.argv)))
 
     zero_arg = None
     base_argv = []
     fire_argv = []
 
     is_sep = False
+
+    if not 'run' in sys.argv:
+        log.error('The "run" param is required ... ')
+        exit(135)
 
     for _,arg  in enumerate(sys.argv):
         if _ == 0 :
@@ -42,35 +44,36 @@ if __name__ == "__main__" :
         log.error('"run" command is required ... ')
         exit(134)
 
-    log.debug('base_argv : {0}'.format(', '.join(base_argv)))
-    log.debug('fire_argv : {0}'.format(', '.join(fire_argv)))
-
-    log.debug(zero_arg)
-
     sys.argv.clear()
     sys.argv.append(zero_arg)
     sys.argv = sys.argv + base_argv
 
-    log.debug('base sys.argv : {0}'.format(', '.join(sys.argv)))
-
-    parser = argparse.ArgumentParser(description='news crawler.')
+    parser = argparse.ArgumentParser(description='plz put "--in_path, --out_path"')
     parser.add_argument('--in_path', type=str, nargs='?',
                         default=None,
-                        help='kafka broker hosts')
+                        help='resource input path')
 
     parser.add_argument('--out_path', type=str, nargs='?',
                         default=None,
-                        help='target topic name')
+                        help='result output path')
+
+    parser.add_argument('--print_banner', type=int, nargs='?',
+                        default=1,
+                        help='is print banner param.  input int 1 or 0')
 
     args = parser.parse_args()
 
+    if args.print_banner:
+        print_app_info()
+
+    log.info('base_argv : {0}'.format(', '.join(base_argv)))
+    log.info('fire_argv : {0}'.format(', '.join(fire_argv)))
+
     in_path = args.in_path
     assert isinstance(in_path, str), 'the "in_path" param is invalid ... in_path : {}'.format(in_path)
-    # TODO in_path check
 
     out_path = args.out_path
     assert isinstance(out_path, str), 'the "out_path" param is invalid ... out_path : {}'.format(out_path)
-    # TODO out_path check
 
     g_resource.IN_PATH = in_path
     g_resource.OUT_PATH = out_path
@@ -78,7 +81,6 @@ if __name__ == "__main__" :
     sys.argv.clear()
     sys.argv.append(zero_arg)
     sys.argv = sys.argv + fire_argv
-    log.debug('fire sys.argv : {0}'.format(', '.join(sys.argv)))
 
     actionFactory = ActionFactory()
 
@@ -93,6 +95,6 @@ if __name__ == "__main__" :
 
             fire.Fire(actionFactory)
 
-            if len(fire_argv) == 0:
-                log.error('"run" param is required ... ')
+            if len(fire_argv) == 0 or len(fire_argv) == 1:
+                log.error('The "fire_argv" param must be greater than 1 ... ')
                 exit(135)

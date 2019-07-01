@@ -6,6 +6,7 @@ import tarfile
 import time
 import os
 import io
+import importlib
 from pathlib import Path
 from logzero import logger as log
 from form.data import PipelineContentsData
@@ -94,3 +95,15 @@ class Module:
                     raise Exception(
                         'error writing contents {0} to tarstream: {1}'.format(
                             self._data.contents, self._data.file_name))
+
+    def convert(self, obj_fullname: str):
+        assert '.' in obj_fullname, 'obj_fullname must have "."'
+
+        module_name, class_name = obj_fullname.rsplit(".", 1)
+        target_obj = getattr(importlib.import_module(module_name), class_name)
+        instance = target_obj(self._data)
+
+        return instance
+
+    def test_end(self):
+        log.debug('end')

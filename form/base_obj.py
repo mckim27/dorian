@@ -52,7 +52,7 @@ class Module:
             Path(dir_path).mkdir(parents=True, exist_ok=True)
 
             if os.path.exists(file_path):
-                log.wran('file exist... by pass. :: file_path - {0}'.format(file_path))
+                log.warn('file exist... by pass. :: file_path - {0}'.format(file_path))
                 return
 
             with open(file_path, 'w', encoding='utf-8') as f:

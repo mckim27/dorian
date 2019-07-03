@@ -27,25 +27,65 @@ class Cleanser(Module):
         return self
 
     def remove_special_ch(self):
-        c_return = '[^\\n{1}^]'
-        hangul = '[^\\n{1}^\\.{1}^\\n^\\sㄱ-ㅣ가-힣]+'
-        self._data.contents = re.sub(hangul, '', self._data.contents)
-        log.debug('text: {}'.format(self._data.contents))
+        text = self._data.contents
+
+        try:
+            # 한글이 아닌 것, '.' 이 아닌 것, 's' 공백이 아닌 것 일단 삭제
+            not_hangul = '[^\\n^\\.{1}^\\sㄱ-ㅣ가-힣]+'
+            text = re.sub(not_hangul, '', text)
+
+            # '. ' 인 것들 '.' + 개행 으로 변경.
+            text = re.sub('\\. +', '.\n', text)
+
+            # '..' 두개 이상 인것들 삭제.
+            text = re.sub('\\.{2,}', '', text)
+
+            # 공백 두개 이상인것 하나로 변경.
+            text = re.sub(' {2,}', ' ', text)
+
+            text = re.sub('\n ', '\n', text)
+
+            # 개행 두개 이상인것 하나로 변경.
+            text = re.sub('\n{2,}', '\n', text)
+
+            log.debug('### after text : {}'.format(text))
+        except Exception as e:
+            log.error('check string : {}'.format(text))
+            raise e
 
         return self
 
     @staticmethod
-    def remove_special_ch2(s):
-        log.debug('before : {}'.format(s))
+    def test_remove_special_ch(s):
+        text = s
 
-        hangul = '[^\\.{1}^\\sㄱ-ㅣ가-힣]+'
-        s = re.sub(hangul, '', s)
-        s = s.replace('. ', '.\n')
+        log.debug('before : {}'.format(text))
 
-        c_return = '[\n\\s{1,}]'
-        # s = re.sub(c_return, '\\n', s)
+        try:
+            # 한글이 아닌 것, '.' 이 아닌 것, 's' 공백이 아닌 것 일단 삭제
+            not_hangul = '[^\\n^\\.{1}^\\sㄱ-ㅣ가-힣]+'
+            text = re.sub(not_hangul, '', text)
 
-        return s
+            # '. ' 인 것들 '.' + 개행 으로 변경.
+            text = re.sub('\\. +', '.\n', text)
+
+            # '..' 두개 이상 인것들 삭제.
+            text = re.sub('\\.{2,}', '', text)
+
+            # 공백 두개 이상인것 하나로 변경.
+            text = re.sub(' {2,}', ' ', text)
+
+            text = re.sub('\n ', '\n', text)
+
+            # 개행 두개 이상인것 하나로 변경.
+            text = re.sub('\n{2,}', '\n', text)
+
+            log.debug('### after text : {}'.format(text))
+        except Exception as e:
+            log.error('check string : {}'.format(text))
+            raise e
+
+        return text
 
     def arrange_return(self):
         log.debug('remove special ch')
@@ -53,9 +93,16 @@ class Cleanser(Module):
 
 
 if __name__ == "__main__":
-    s = ''
+    s = None
 
     with open('../pfs/20190622010201003_entertain.txt', 'r') as f:
         s = f.read()
 
-    log.debug('after : {}'.format(Cleanser.remove_special_ch2(s)))
+    out = Cleanser.test_remove_special_ch(s)
+
+    log.debug('after : {}'.format(out))
+
+    with open('test.txt', mode='wt', encoding='utf-8') as f:
+        f.write(out)
+
+

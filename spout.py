@@ -78,7 +78,15 @@ if __name__ == "__main__" :
                         default='/pfs/out',
                         help='result output folder path')
 
+    parser.add_argument('--print_banner', type=int, nargs='?',
+                        default=1,
+                        help='is print banner param.  input int 1 or 0')
+
     args = parser.parse_args()
+
+    if args.print_banner:
+        print_app_info()
+
     broker_hosts = args.broker_hosts
     topic_name = args.topic_name
     group_id = args.group_id
